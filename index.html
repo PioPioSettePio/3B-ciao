@@ -52,6 +52,10 @@
         button:hover {
             background-color: #2980b9;
         }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
         .risultato {
             margin-top: 30px;
             text-align: left;
@@ -65,6 +69,27 @@
             border: 1px solid #c8e6c9;
             font-size: 1.1rem;
             font-weight: 500;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .drumroll {
+            display: block;
+            background: #fff3e0;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ffe0b2;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #e65100;
+            animation: pulse 0.4s infinite alternate;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            from { transform: scale(0.98); opacity: 0.8; }
+            to { transform: scale(1.02); opacity: 1; }
         }
     </style>
 </head>
@@ -72,110 +97,102 @@
 
 <div class="container">
     <h1>Generatore di Numeri Senza Doppioni</h1>
-    
+         
     <label for="quantita">Quanti numeri vuoi estrarre? (Massimo 24)</label>
-    <!-- Il massimo è impostato a 24 perché ci sono 24 frasi uniche disponibili -->
     <input type="number" id="quantita" value="3" min="1" max="24">
-    
+         
     <br>
-    
-    <button onclick="generaNumeriCasuali()">Genera</button>
-    
+         
+    <button id="btnGenera" onclick="generaNumeriCasuali()">Genera</button>
+         
     <div class="risultato" id="output"></div>
 </div>
 
 <script>
-function generaNumeriCasuali() {
+// Funzione di utilità per creare il ritardo di tempo
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function generaNumeriCasuali() {
     const inputQuantita = document.getElementById('quantita');
+    const btnGenera = document.getElementById('btnGenera');
     let quantita = parseInt(inputQuantita.value);
-    
+         
     if (isNaN(quantita) || quantita < 1) {
         alert("Inserisci un numero valido maggiore di 0");
         return;
     }
-    
-    // Essendoci solo 24 opzioni, non possiamo estrarne più di 24 uniche
+         
     if (quantita > 24) {
         quantita = 24;
         inputQuantita.value = 24;
     }
-    
+         
     const outputDiv = document.getElementById('output');
     outputDiv.innerHTML = ''; 
     
-    // Usiamo un Set per salvare solo numeri unici
+    // Disabilita il pulsante durante l'estrazione a tempo
+    btnGenera.disabled = true;
+
     const numeriEstratti = new Set();
-    
-    // Continua a estrarre finché non raggiungiamo la quantità richiesta di numeri DIVERSI
+         
     while (numeriEstratti.size < quantita) {
         const numeroCasuale = Math.floor(Math.random() * 24) + 1;
-        numeriEstratti.add(numeroCasuale); // Se il numero esiste già, non viene aggiunto di nuovo
+        numeriEstratti.add(numeroCasuale);
     }
-    
-    // Trasformiamo i numeri estratti in un elenco ordinato per mostrarli meglio (opzionale)
+         
     const arrayNumeri = Array.from(numeriEstratti).sort((a, b) => a - b);
-
-    // Ciclo per associare le frasi ai numeri estratti
+     
+    // Ciclo sequenziale con attesa
     for (let i = 0; i < arrayNumeri.length; i++) {
         const numeroCasuale = arrayNumeri[i];
         let testoAssociato = "";
 
-        if (numeroCasuale === 1) {
-            testoAssociato = "Giulia Arnaboldi(:";
-        } else if (numeroCasuale === 2) {
-            testoAssociato = "Sofia Carofano";
-        } else if (numeroCasuale === 3) {
-            testoAssociato = "Simone Cavinato";
-        } else if (numeroCasuale === 4) {
-            testoAssociato = "Giulia Celebre";
-        } else if (numeroCasuale === 5) {
-            testoAssociato = "Fabio Chiadroni";
-        } else if (numeroCasuale === 6) {
-            testoAssociato = "Lavinia De Amicis";
-        } else if (numeroCasuale === 7) {
-            testoAssociato = "Sofia Domizio";
-        } else if (numeroCasuale === 8) {
-            testoAssociato = "Benedetta Farisano";
-        } else if (numeroCasuale === 9) {
-            testoAssociato = "Gabriele Fiorenza";
-        } else if (numeroCasuale === 10) {
-            testoAssociato = "Nicole Fireira";
-        } else if (numeroCasuale === 11) {
-            testoAssociato = "Irene Gambale";
-        } else if (numeroCasuale === 12) {
-            testoAssociato = "Sara Gentili";
-        } else if (numeroCasuale === 13) {
-            testoAssociato = "Gabriel Macirella";
-        } else if (numeroCasuale === 14) {
-            testoAssociato = "Adriano Marini):";
-        } else if (numeroCasuale === 15) {
-            testoAssociato = "Margot Morosini";
-        } else if (numeroCasuale === 16) {
-            testoAssociato = "Sara Pauluzzi";
-        } else if (numeroCasuale === 17) {
-            testoAssociato = "Nathan Pignataro";
-        } else if (numeroCasuale === 18) {
-            testoAssociato = "Gabriele Rossetti";
-        } else if (numeroCasuale === 19) {
-            testoAssociato = "Gabriele Ruggiero";
-        } else if (numeroCasuale === 20) {
-            testoAssociato = "Valerio Ruggiero";
-        } else if (numeroCasuale === 21) {
-            testoAssociato = "Vincenzo Ruggiero";
-        } else if (numeroCasuale === 22) {
-            testoAssociato = "Andrea Rummler";
-        } else if (numeroCasuale === 23) {
-            testoAssociato = "Francesca Stella";
-        } else if (numeroCasuale === 24) {
-            testoAssociato = "Francesco Ventrone";
-        }
+        // Mappatura dei nomi
+        if (numeroCasuale === 1) { testoAssociato = "Giulia Arnaboldi(:"; }
+        else if (numeroCasuale === 2) { testoAssociato = "Sofia Carofano"; }
+        else if (numeroCasuale === 3) { testoAssociato = "Simone Cavinato"; }
+        else if (numeroCasuale === 4) { testoAssociato = "Giulia Celebre"; }
+        else if (numeroCasuale === 5) { testoAssociato = "Fabio Chiadroni"; }
+        else if (numeroCasuale === 6) { testoAssociato = "Lavinia De Amicis"; }
+        else if (numeroCasuale === 7) { testoAssociato = "Sofia Domizio"; }
+        else if (numeroCasuale === 8) { testoAssociato = "Benedetta Farisano"; }
+        else if (numeroCasuale === 9) { testoAssociato = "Gabriele Fiorenza"; }
+        else if (numeroCasuale === 10) { testoAssociato = "Nicole Fireira"; }
+        else if (numeroCasuale === 11) { testoAssociato = "Irene Gambale"; }
+        else if (numeroCasuale === 12) { testoAssociato = "Sara Gentili"; }
+        else if (numeroCasuale === 13) { testoAssociato = "Gabriel Macirella"; }
+        else if (numeroCasuale === 14) { testoAssociato = "Adriano Marini):"; }
+        else if (numeroCasuale === 15) { testoAssociato = "Margot Morosini"; }
+        else if (numeroCasuale === 16) { testoAssociato = "Sara Pauluzzi"; }
+        else if (numeroCasuale === 17) { testoAssociato = "Nathan Pignataro"; }
+        else if (numeroCasuale === 18) { testoAssociato = "Gabriele Rossetti"; }
+        else if (numeroCasuale === 19) { testoAssociato = "Gabriele Ruggiero"; }
+        else if (numeroCasuale === 20) { testoAssociato = "Valerio Ruggiero"; }
+        else if (numeroCasuale === 21) { testoAssociato = "Vincenzo Ruggiero"; }
+        else if (numeroCasuale === 22) { testoAssociato = "Andrea Rummler"; }
+        else if (numeroCasuale === 23) { testoAssociato = "Francesca Stella"; }
+        else if (numeroCasuale === 24) { testoAssociato = "Francesco Ventrone"; }
+
+        // Creazione dell'elemento di attesa (Rullo di tamburi)
+        const drumrollSpan = document.createElement('span');
+        drumrollSpan.className = 'drumroll';
+        drumrollSpan.innerText = `🥁 Rullo di tamburi per l'estrazione ${i + 1}...`;
+        outputDiv.appendChild(drumrollSpan);
+
+        // Aspetta 2000 millisecondi (2 secondi)
+        await sleep(2000);
+
+        // Rimuove il rullo di tamburi e inserisce il risultato finale
+        outputDiv.removeChild(drumrollSpan);
 
         const span = document.createElement('span');
         span.className = 'numero-card';
         span.innerText = `🎲 Numero ${numeroCasuale}: ${testoAssociato}`;
-        
         outputDiv.appendChild(span);
     }
+
+    // Riabilita il pulsante alla fine di tutte le estrazioni
+    btnGenera.disabled = false;
 }
 </script>
 
